@@ -84,7 +84,7 @@
     /* LAYOUT */
     .main {
       display: grid;
-      grid-template-columns: 1fr 520px;
+      grid-template-columns: 1fr 560px;
       gap: 24px;
       padding: 28px;
       flex: 1;
@@ -255,11 +255,12 @@
     #billPreview {
       background: var(--white);
       border-radius: 10px;
-      padding: 20px;
+      padding: 12px;
       border: 1px solid #ccc;
       font-family: 'Inter', sans-serif;
       font-size: 11px;
       color: #111;
+      overflow: hidden;
     }
 
     /* Title bar */
@@ -317,9 +318,9 @@
 
     .inv-meta { padding: 8px 10px; }
     .inv-meta table { width: 100%; font-size: 10px; border-collapse: collapse; }
-    .inv-meta td { padding: 2px 4px; }
-    .inv-meta td:first-child { color: #555; white-space: nowrap; }
-    .inv-meta td:last-child { font-weight: 600; color: #000; }
+    .inv-meta td { padding: 2px 3px; vertical-align: top; }
+    .inv-meta td:first-child { color: #555; white-space: nowrap; width: 55%; }
+    .inv-meta td:last-child { font-weight: 600; color: #000; text-align: right; }
 
     /* Buyer row */
     .inv-buyer-row {
@@ -342,8 +343,9 @@
     .inv-dispatch { padding: 8px 10px; }
     .inv-dispatch .section-label { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-bottom: 4px; }
     .inv-dispatch table { width: 100%; font-size: 10px; border-collapse: collapse; }
-    .inv-dispatch td { padding: 1.5px 2px; color: #444; }
-    .inv-dispatch td:first-child { color: #777; font-size: 9px; }
+    .inv-dispatch td { padding: 1.5px 2px; color: #444; vertical-align: top; }
+    .inv-dispatch td:first-child { color: #777; font-size: 9px; width: 60%; }
+    .inv-dispatch td:last-child { text-align: right; font-weight: 600; }
 
     /* Items table */
     .inv-items-table {
@@ -351,108 +353,131 @@
       border-collapse: collapse;
       border: 1.5px solid #111;
       border-top: none;
-      font-size: 10px;
+      font-size: 9.5px;
+      table-layout: fixed;
     }
     .inv-items-table thead tr {
       background: #f0f0f0;
       border-bottom: 1px solid #aaa;
     }
     .inv-items-table thead th {
-      padding: 5px 6px;
+      padding: 4px 3px;
       text-align: center;
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
       border-right: 1px solid #ccc;
       color: #000;
+      word-break: break-word;
+      line-height: 1.2;
     }
     .inv-items-table thead th:last-child { border-right: none; }
     .inv-items-table tbody td {
-      padding: 5px 6px;
+      padding: 4px 3px;
       border-right: 1px solid #e0e0e0;
       border-bottom: 1px solid #e8e8e8;
       vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .inv-items-table tbody td:last-child { border-right: none; }
     .inv-items-table tbody tr:last-child td { border-bottom: none; }
-    .inv-items-table .col-sno { text-align: center; width: 28px; }
-    .inv-items-table .col-desc { min-width: 120px; font-weight: 600; }
-    .inv-items-table .col-hsn { text-align: center; }
-    .inv-items-table .col-qty { text-align: center; }
-    .inv-items-table .col-rate { text-align: right; }
-    .inv-items-table .col-disc { text-align: center; }
-    .inv-items-table .col-amt { text-align: right; font-weight: 700; }
+    /* Column widths — total must fit ~460px */
+    .inv-items-table .col-sno  { text-align: center; width: 22px; }
+    .inv-items-table .col-desc { text-align: left;   width: auto; font-weight: 600; white-space: normal; word-break: break-word; }
+    .inv-items-table .col-hsn  { text-align: center; width: 52px; }
+    .inv-items-table .col-qty  { text-align: center; width: 50px; }
+    .inv-items-table .col-rate { text-align: right;  width: 44px; }
+    .inv-items-table .col-per  { text-align: center; width: 30px; }
+    .inv-items-table .col-disc { text-align: center; width: 32px; }
+    .inv-items-table .col-amt  { text-align: right;  width: 52px; font-weight: 700; }
 
-    /* GST subtotal rows */
+    /* GST subtotal rows — amount col aligned to table col-amt (52px wide) */
     .inv-gst-sub {
       border: 1.5px solid #111;
       border-top: none;
     }
     .gst-row {
       display: flex;
-      justify-content: flex-end;
       align-items: center;
-      padding: 3px 10px;
-      font-size: 10px;
+      padding: 2px 3px 2px 6px;
+      font-size: 9.5px;
       border-bottom: 1px solid #e8e8e8;
-      gap: 8px;
     }
     .gst-row:last-child { border-bottom: none; }
-    .gst-row span { min-width: 60px; text-align: right; }
-    .gst-row .gst-label { color: #555; flex: 1; text-align: right; margin-right: 8px; font-size: 9px; font-weight: 600; text-transform: uppercase; }
+    .gst-row .gst-label {
+      color: #555;
+      flex: 1;
+      text-align: right;
+      padding-right: 6px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+    .gst-row .gst-amt {
+      width: 52px;
+      text-align: right;
+      font-weight: 600;
+      font-size: 9.5px;
+      color: #111;
+      padding-right: 3px;
+    }
 
-    /* Total row */
+    /* Total row — label left, qty center, amount aligned to col-amt */
     .inv-total-row {
       border: 1.5px solid #111;
       border-top: none;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 5px 10px;
+      padding: 5px 3px 5px 6px;
       font-weight: 700;
     }
-    .inv-total-row .total-label { font-size: 10px; }
-    .inv-total-row .total-qty { font-size: 10px; color: #555; }
-    .inv-total-row .total-amt { font-size: 13px; font-weight: 900; color: #000; }
+    .inv-total-row .total-label { font-size: 10px; font-weight: 800; flex: 0 0 auto; }
+    .inv-total-row .total-qty   { font-size: 9.5px; color: #555; flex: 1; text-align: center; }
+    .inv-total-row .total-amt   { font-size: 12px; font-weight: 900; color: #000; width: 52px; text-align: right; padding-right: 3px; }
 
     /* Amount in words + summary */
     .inv-bottom {
       border: 1.5px solid #111;
       border-top: none;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 55% 45%;
     }
-    .inv-words { padding: 8px 10px; border-right: 1px solid #ccc; }
+    .inv-words { padding: 6px 8px; border-right: 1px solid #ccc; }
     .inv-words .words-label { font-size: 9px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
     .inv-words .words-text { font-size: 10px; font-weight: 600; color: #000; font-style: italic; }
     .inv-tax-label { font-size: 9px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; margin-bottom: 2px; }
     .inv-tax-words { font-size: 10px; font-weight: 600; color: #000; font-style: italic; }
 
-    .inv-tax-summary { padding: 8px 10px; }
-    .inv-tax-summary table { width: 100%; font-size: 9.5px; border-collapse: collapse; }
+    .inv-tax-summary { padding: 6px 6px; }
+    .inv-tax-summary table { width: 100%; font-size: 8.5px; border-collapse: collapse; table-layout: fixed; }
     .inv-tax-summary thead th {
       background: #f0f0f0;
-      padding: 3px 5px;
-      font-size: 9px;
+      padding: 2px 3px;
+      font-size: 8px;
       font-weight: 700;
       text-align: center;
       border: 1px solid #ccc;
       text-transform: uppercase;
+      word-break: break-word;
+      line-height: 1.2;
     }
     .inv-tax-summary tbody td {
-      padding: 3px 5px;
+      padding: 2px 3px;
       border: 1px solid #ddd;
       text-align: center;
-      font-size: 9.5px;
+      font-size: 8.5px;
     }
     .inv-tax-summary tfoot td {
-      padding: 3px 5px;
+      padding: 2px 3px;
       border: 1px solid #ccc;
       font-weight: 700;
       text-align: center;
       background: #f9f9f9;
-      font-size: 9.5px;
+      font-size: 8.5px;
     }
 
     /* Bank + footer */
@@ -465,7 +490,7 @@
     .inv-bank { padding: 8px 10px; border-right: 1px solid #ccc; }
     .inv-bank .bank-title { font-size: 9px; font-weight: 700; text-transform: uppercase; color: #888; letter-spacing: 0.5px; margin-bottom: 4px; }
     .inv-bank p { font-size: 10px; color: #333; line-height: 1.6; }
-    .inv-sign { padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; }
+    .inv-sign { padding: 8px 10px; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; min-height: 70px; }
     .inv-sign .for-label { font-size: 9px; color: #888; }
     .inv-sign .company-name { font-size: 11px; font-weight: 900; color: #000; letter-spacing: 0.5px; }
     .inv-sign .auth-line { font-size: 9px; color: #888; margin-top: 20px; }
@@ -699,7 +724,7 @@
 
   <!-- RIGHT: PREVIEW -->
   <div class="bill-wrap">
-    <div class="panel">
+    <div class="panel" style="padding:16px;">
       <div class="panel-title"><div class="icon">👁</div> Tax Invoice Preview</div>
 
       <!-- GST Tax Invoice -->
@@ -758,13 +783,13 @@
         <table class="inv-items-table">
           <thead>
             <tr>
-              <th class="col-sno">Sl No.</th>
+              <th class="col-sno">Sl<br>No.</th>
               <th class="col-desc">Description of Goods</th>
               <th class="col-hsn">HSN/SAC</th>
               <th class="col-qty">Quantity</th>
-              <th>Rate</th>
-              <th>per</th>
-              <th class="col-disc">Disc. %</th>
+              <th class="col-rate">Rate</th>
+              <th class="col-per">per</th>
+              <th class="col-disc">Disc.<br>%</th>
               <th class="col-amt">Amount</th>
             </tr>
           </thead>
@@ -786,11 +811,11 @@
         <div class="inv-gst-sub">
           <div class="gst-row">
             <span class="gst-label">OUTPUT CGST <span id="prev-cgst-pct">9</span>%</span>
-            <span id="prev-cgst-amt">₹0.00</span>
+            <span class="gst-amt" id="prev-cgst-amt">₹0.00</span>
           </div>
           <div class="gst-row">
             <span class="gst-label">OUTPUT SGST <span id="prev-sgst-pct">9</span>%</span>
-            <span id="prev-sgst-amt">₹0.00</span>
+            <span class="gst-amt" id="prev-sgst-amt">₹0.00</span>
           </div>
         </div>
 
@@ -1111,10 +1136,10 @@
         tr.innerHTML = `
           <td class="col-sno">${i+1}</td>
           <td class="col-desc">${r.name||'—'}</td>
-          <td class="col-hsn" style="text-align:center;">${r.hsn||'—'}</td>
-          <td class="col-qty" style="text-align:center;">${r.qty} ${r.unit}</td>
-          <td style="text-align:right;">₹${r.price.toFixed(2)}</td>
-          <td style="text-align:center;">${r.unit}</td>
+          <td class="col-hsn">${r.hsn||'—'}</td>
+          <td class="col-qty">${r.qty} ${r.unit}</td>
+          <td class="col-rate">₹${r.price.toFixed(2)}</td>
+          <td class="col-per">${r.unit}</td>
           <td class="col-disc">${r.disc}%</td>
           <td class="col-amt">₹${rowTotal.toFixed(2)}</td>
         `;
