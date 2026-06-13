@@ -1,0 +1,52 @@
+// ══════════════════════════════════════════════════════════
+//  BillPro — Firestore Security Rules
+//  Mode: Test (authenticated users full access)
+//  Deploy via: Firebase Console → Firestore → Rules
+// ══════════════════════════════════════════════════════════
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── BILLS collection ──────────────────────────────────
+    // Any signed-in user can read, create, update, delete bills
+    match /bills/{billId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // ── Catch-all for test mode ───────────────────────────
+    // Allows authenticated users to access any collection
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// HOW TO DEPLOY:
+//
+//  Option A — Firebase Console (easiest):
+//  1. Go to https://console.firebase.google.com
+//  2. Select project: bill-web-46e16
+//  3. Click "Firestore Database" in the left sidebar
+//  4. Click the "Rules" tab
+//  5. Replace existing rules with the block above
+//  6. Click "Publish"
+//
+//  Option B — Firebase CLI:
+//  1. Install: npm install -g firebase-tools
+//  2. Login:   firebase login
+//  3. Init:    firebase init firestore   (select your project)
+//  4. Paste above rules into firestore.rules file
+//  5. Deploy:  firebase deploy --only firestore:rules
+//
+// ══════════════════════════════════════════════════════════
+// NOTE: These are TEST MODE rules.
+// For production, restrict to user's own documents:
+//
+//   match /bills/{billId} {
+//     allow read, write: if request.auth != null
+//       && request.auth.uid == resource.data.uid;
+//   }
+// ══════════════════════════════════════════════════════════

@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BillPro — Billing</title>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- html2canvas for image / PDF rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&family=Bebas+Neue&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --yellow: #FFD600;
+      --yellow-light: #FFF9C4;
+      --black: #0D0D0D;
+      --red: #E53935;
+      --white: #FFFFFF;
+      --gray: #F7F7F7;
+      --border: #E8E8E8;
+      --text: #1A1A1A;
+      --text-light: #666;
+      --sidebar: #0D0D0D;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--gray);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── TOP NAV ── */
+    nav {
+      background: var(--black);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .nav-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 30px;
+      color: var(--white);
+      letter-spacing: 2px;
+    }
+    .nav-brand span { color: var(--yellow); }
+    .nav-links { display: flex; gap: 4px; }
+    .nav-links a {
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .nav-links a.active { background: var(--yellow); color: var(--black); font-weight: 700; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .user-badge {
+      background: rgba(255,214,0,0.15);
+      color: var(--yellow);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,214,0,0.3);
+    }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── LAYOUT ── */
+    .main {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 24px;
+      padding: 28px;
+      flex: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--white);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+    }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .panel-title .icon {
+      width: 32px; height: 32px;
+      background: var(--yellow);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    /* ── CUSTOMER INFO ── */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .form-group { margin-bottom: 14px; }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+    }
+    input[type="text"], input[type="number"], input[type="tel"], select, textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 9px;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--yellow);
+      box-shadow: 0 0 0 3px rgba(255,214,0,0.12);
+    }
+    textarea { resize: vertical; min-height: 60px; }
+
+    /* ── PRODUCT TABLE ── */
+    .product-table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    table.product-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    table.product-table thead th {
+      background: var(--black);
+      color: var(--yellow);
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table.product-table thead th:first-child { border-radius: 8px 0 0 0; }
+    table.product-table thead th:last-child { border-radius: 0 8px 0 0; }
+    table.product-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    table.product-table tbody tr:hover { background: #FFFDE7; }
+    table.product-table td { padding: 8px 10px; vertical-align: middle; }
+    table.product-table input {
+      padding: 7px 10px;
+      font-size: 13px;
+      border-radius: 7px;
+    }
+    table.product-table .total-cell {
+      font-weight: 700;
+      color: var(--black);
+    }
+    .btn-remove {
+      background: #FFF3F3;
+      color: var(--red);
+      border: 1px solid #FFCDD2;
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    .btn-remove:hover { background: var(--red); color: #fff; }
+
+    .btn-add-row {
+      background: var(--yellow-light);
+      color: var(--black);
+      border: 1.5px dashed var(--yellow);
+      border-radius: 9px;
+      padding: 9px 18px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    .btn-add-row:hover { background: var(--yellow); }
+
+    /* ── TOTALS ── */
+    .totals-box {
+      background: var(--gray);
+      border-radius: 12px;
+      padding: 18px;
+      border: 1px solid var(--border);
+      margin-top: 16px;
+    }
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 14px;
+      color: var(--text-light);
+      border-bottom: 1px solid var(--border);
+    }
+    .totals-row:last-child { border-bottom: none; }
+    .totals-row.grand {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      padding-top: 10px;
+    }
+    .totals-row.grand span:last-child { color: var(--red); }
+
+    /* ── ACTIONS ── */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .btn-primary { background: var(--black); color: var(--yellow); }
+    .btn-primary:hover { background: #222; }
+    .btn-yellow { background: var(--yellow); color: var(--black); }
+    .btn-yellow:hover { background: #FFC400; }
+    .btn-red { background: var(--red); color: #fff; }
+    .btn-red:hover { background: #c62828; }
+    .btn-outline {
+      background: transparent;
+      color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--black); background: var(--gray); }
+
+    /* ── BILL PREVIEW ── */
+    .bill-wrap {
+      position: sticky;
+      top: 80px;
+      max-height: calc(100vh - 100px);
+      overflow-y: auto;
+    }
+
+    #billPreview {
+      background: var(--white);
+      border-radius: 14px;
+      padding: 32px 28px;
+      border: 1px solid var(--border);
+      min-height: 500px;
+    }
+
+    .bill-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid var(--black);
+    }
+    .bill-logo-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      color: var(--black);
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+    .bill-logo-name span { color: var(--red); }
+    .bill-logo-sub { font-size: 11px; color: #999; margin-top: 2px; }
+    .bill-meta { text-align: right; font-size: 12px; color: #666; }
+    .bill-meta strong { display: block; font-size: 18px; font-weight: 900; color: var(--black); }
+    .bill-meta .bill-date { color: #888; margin-top: 2px; }
+
+    .bill-band {
+      background: var(--black);
+      color: var(--yellow);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .bill-customer {
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: var(--text);
+    }
+    .bill-customer strong { font-size: 15px; color: var(--black); }
+
+    table.bill-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+    table.bill-table thead th {
+      background: var(--yellow);
+      color: var(--black);
+      padding: 8px 10px;
+      text-align: left;
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+    table.bill-table tbody tr { border-bottom: 1px solid #F0F0F0; }
+    table.bill-table td { padding: 7px 10px; }
+    table.bill-table tbody tr:nth-child(even) { background: #FFFDE7; }
+
+    .bill-totals { text-align: right; font-size: 13px; }
+    .bill-totals div { padding: 3px 0; color: #666; }
+    .bill-totals .grand-total {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--red);
+      border-top: 2px solid var(--black);
+      padding-top: 8px;
+      margin-top: 4px;
+    }
+
+    .bill-footer {
+      margin-top: 20px;
+      padding-top: 14px;
+      border-top: 1px dashed #ddd;
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+    }
+    .bill-footer strong { color: var(--black); }
+
+    .bill-watermark-bar {
+      height: 6px;
+      background: linear-gradient(90deg, var(--yellow) 60%, var(--red) 100%);
+      border-radius: 3px;
+      margin-bottom: 20px;
+    }
+
+    /* ── EXPORT BUTTONS ── */
+    .export-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: var(--black);
+      color: var(--yellow);
+      padding: 12px 22px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 9999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #toast.show { transform: translateY(0); opacity: 1; }
+    #toast.error { background: var(--red); color: #fff; }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="nav-brand">Bill<span>Pro</span></div>
+    <div class="nav-links">
+      <a href="billing.html" class="active">🧾 Billing</a>
+      <a href="salesstat.html">📊 Sales Stats</a>
+    </div>
+    <div class="nav-right">
+      <span class="user-badge" id="userBadge">Loading…</span>
+      <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- LEFT: FORM -->
+    <div>
+
+      <!-- Customer Info -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-title"><div class="icon">👤</div> Customer Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Customer Name *</label>
+            <input type="text" id="custName" placeholder="John Doe" oninput="updatePreview()"/>
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="tel" id="custPhone" placeholder="+91 9999999999" oninput="updatePreview()"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Address</label>
+          <textarea id="custAddress" placeholder="123, Main Street, City" oninput="updatePreview()"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Bill No.</label>
+            <input type="text" id="billNo" oninput="updatePreview()"/>
+          </div>
+          <div class="form-group">
+            <label>Bill Date</label>
+            <input type="text" id="billDate" oninput="updatePreview()"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-title"><div class="icon">📦</div> Products & Services</div>
+
+        <div class="product-table-wrap">
+          <table class="product-table" id="productTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Product / Service</th>
+                <th>Qty</th>
+                <th>Unit Price (₹)</th>
+                <th>Discount (%)</th>
+                <th>Total (₹)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="productRows"></tbody>
+          </table>
+        </div>
+
+        <button class="btn-add-row" onclick="addRow()">＋ Add Product</button>
+
+        <!-- Tax & Discount -->
+        <div class="totals-box">
+          <div class="form-row" style="margin-bottom:0;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label>GST / Tax (%)</label>
+              <input type="number" id="taxRate" value="18" min="0" max="100" oninput="recalc()"/>
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label>Global Discount (%)</label>
+              <input type="number" id="discountRate" value="0" min="0" max="100" oninput="recalc()"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totals -->
+        <div class="totals-box">
+          <div class="totals-row"><span>Subtotal</span><span id="subtotalDisplay">₹0.00</span></div>
+          <div class="totals-row"><span>Discount</span><span id="discountDisplay">-₹0.00</span></div>
+          <div class="totals-row"><span>Tax (GST)</span><span id="taxDisplay">+₹0.00</span></div>
+          <div class="totals-row grand"><span>Grand Total</span><span id="grandDisplay">₹0.00</span></div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group" style="margin-top:16px;">
+          <label>Notes / Terms</label>
+          <textarea id="billNotes" placeholder="Thank you for your business!" oninput="updatePreview()"></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions">
+          <button class="btn btn-primary" onclick="saveBill()">💾 Save Bill</button>
+          <button class="btn btn-yellow" onclick="clearAll()">🔄 New Bill</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: PREVIEW -->
+    <div class="bill-wrap">
+      <div class="panel">
+        <div class="panel-title"><div class="icon">👁</div> Bill Preview</div>
+
+        <div id="billPreview">
+          <div class="bill-watermark-bar"></div>
+          <div class="bill-header">
+            <div>
+              <div class="bill-logo-name">Bill<span>Pro</span></div>
+              <div class="bill-logo-sub">Smart Billing System</div>
+            </div>
+            <div class="bill-meta">
+              <strong id="prev-billno">INVOICE</strong>
+              <div class="bill-date" id="prev-date">—</div>
+            </div>
+          </div>
+
+          <div class="bill-band">Billed To</div>
+          <div class="bill-customer">
+            <strong id="prev-name">Customer Name</strong><br/>
+            <span id="prev-phone"></span><br/>
+            <span id="prev-address"></span>
+          </div>
+
+          <table class="bill-table" id="billTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Disc%</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="billTableBody"></tbody>
+          </table>
+
+          <div class="bill-totals">
+            <div>Subtotal: <strong id="prev-subtotal">₹0.00</strong></div>
+            <div>Discount: <strong id="prev-discount">-₹0.00</strong></div>
+            <div>Tax: <strong id="prev-tax">+₹0.00</strong></div>
+            <div class="grand-total">Total: <span id="prev-grand">₹0.00</span></div>
+          </div>
+
+          <div class="bill-footer">
+            <strong>Thank you for your business!</strong><br/>
+            <span id="prev-notes"></span><br/>
+            Powered by <strong>BillPro</strong>
+          </div>
+        </div>
+
+        <!-- Export buttons -->
+        <div class="export-actions">
+          <button class="btn btn-primary" onclick="downloadPDF()" style="flex:1;">📄 Download PDF</button>
+          <button class="btn btn-yellow" onclick="downloadImage()" style="flex:1;">🖼 Download IMG</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- Firebase + App Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB25TUP84C8nkK5XSayTvWadiLBcYWSSzo",
+      authDomain: "bill-web-46e16.firebaseapp.com",
+      projectId: "bill-web-46e16",
+      storageBucket: "bill-web-46e16.firebasestorage.app",
+      messagingSenderId: "1021093665998",
+      appId: "1:1021093665988:web:7057b87dbf03e4f231049f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      document.getElementById('userBadge').textContent = user.email;
+    });
+
+    window.handleLogout = async () => {
+      await signOut(auth);
+      window.location.href = 'index.html';
+    };
+
+    window.saveBill = async () => {
+      const rows = gatherRows();
+      if (rows.length === 0) { showToast('Add at least one product.', true); return; }
+      const custName = document.getElementById('custName').value.trim();
+      if (!custName) { showToast('Enter customer name.', true); return; }
+
+      const { subtotal, discount, tax, grand } = calcTotals(rows);
+      const bill = {
+        billNo: document.getElementById('billNo').value,
+        billDate: document.getElementById('billDate').value,
+        customer: {
+          name: custName,
+          phone: document.getElementById('custPhone').value,
+          address: document.getElementById('custAddress').value,
+        },
+        items: rows,
+        subtotal, discount, tax, grand,
+        notes: document.getElementById('billNotes').value,
+        createdAt: serverTimestamp(),
+        uid: auth.currentUser.uid,
+      };
+
+      try {
+        await addDoc(collection(db, 'bills'), bill);
+        showToast('✅ Bill saved successfully!');
+      } catch(e) {
+        showToast('Error saving bill: ' + e.message, true);
+      }
+    };
+
+    window._saveBillToFirestore = window.saveBill;
+  </script>
+
+  <script>
+    // ── ROWS ──
+    let rowCount = 0;
+
+    function addRow(name='', qty=1, price=0, disc=0) {
+      rowCount++;
+      const id = rowCount;
+      const tbody = document.getElementById('productRows');
+      const tr = document.createElement('tr');
+      tr.id = 'row-' + id;
+      tr.innerHTML = `
+        <td style="color:#aaa;font-size:12px;">${id}</td>
+        <td><input type="text" placeholder="Product name" value="${name}" oninput="recalc()" style="min-width:130px;"/></td>
+        <td><input type="number" value="${qty}" min="1" style="width:70px;" oninput="recalc()"/></td>
+        <td><input type="number" value="${price}" min="0" step="0.01" style="width:90px;" oninput="recalc()"/></td>
+        <td><input type="number" value="${disc}" min="0" max="100" style="width:70px;" oninput="recalc()"/></td>
+        <td class="total-cell" id="rowtotal-${id}">₹0.00</td>
+        <td><button class="btn-remove" onclick="removeRow(${id})">✕</button></td>
+      `;
+      tbody.appendChild(tr);
+      recalc();
+    }
+
+    function removeRow(id) {
+      document.getElementById('row-' + id)?.remove();
+      recalc();
+    }
+
+    function gatherRows() {
+      const rows = [];
+      document.querySelectorAll('#productRows tr').forEach(tr => {
+        const inputs = tr.querySelectorAll('input');
+        const name = inputs[0].value.trim();
+        const qty = parseFloat(inputs[1].value) || 0;
+        const price = parseFloat(inputs[2].value) || 0;
+        const disc = parseFloat(inputs[3].value) || 0;
+        if (name || qty || price) rows.push({ name, qty, price, disc });
+      });
+      return rows;
+    }
+
+    function calcTotals(rows) {
+      const gDisc = parseFloat(document.getElementById('discountRate').value) || 0;
+      const taxRate = parseFloat(document.getElementById('taxRate').value) || 0;
+
+      let subtotal = 0;
+      rows.forEach(r => {
+        const rowTotal = r.qty * r.price * (1 - r.disc / 100);
+        subtotal += rowTotal;
+      });
+
+      const discAmt = subtotal * gDisc / 100;
+      const afterDisc = subtotal - discAmt;
+      const taxAmt = afterDisc * taxRate / 100;
+      const grand = afterDisc + taxAmt;
+      return { subtotal, discount: discAmt, tax: taxAmt, grand };
+    }
+
+    function recalc() {
+      const rows = [];
+      document.querySelectorAll('#productRows tr').forEach(tr => {
+        const inputs = tr.querySelectorAll('input');
+        const id = tr.id.replace('row-','');
+        const qty = parseFloat(inputs[1].value) || 0;
+        const price = parseFloat(inputs[2].value) || 0;
+        const disc = parseFloat(inputs[3].value) || 0;
+        const rowTotal = qty * price * (1 - disc / 100);
+        const cell = document.getElementById('rowtotal-' + id);
+        if (cell) cell.textContent = '₹' + rowTotal.toFixed(2);
+        rows.push({ name: inputs[0].value.trim(), qty, price, disc });
+      });
+
+      const { subtotal, discount, tax, grand } = calcTotals(rows);
+      document.getElementById('subtotalDisplay').textContent = '₹' + subtotal.toFixed(2);
+      document.getElementById('discountDisplay').textContent = '-₹' + discount.toFixed(2);
+      document.getElementById('taxDisplay').textContent = '+₹' + tax.toFixed(2);
+      document.getElementById('grandDisplay').textContent = '₹' + grand.toFixed(2);
+
+      updatePreview();
+    }
+
+    function updatePreview() {
+      document.getElementById('prev-name').textContent = document.getElementById('custName').value || 'Customer Name';
+      document.getElementById('prev-phone').textContent = document.getElementById('custPhone').value;
+      document.getElementById('prev-address').textContent = document.getElementById('custAddress').value;
+      document.getElementById('prev-billno').textContent = document.getElementById('billNo').value || 'INVOICE';
+      document.getElementById('prev-date').textContent = document.getElementById('billDate').value || '—';
+      document.getElementById('prev-notes').textContent = document.getElementById('billNotes').value;
+
+      const rows = gatherRows();
+      const tbody = document.getElementById('billTableBody');
+      tbody.innerHTML = '';
+      rows.forEach((r, i) => {
+        const rowTotal = r.qty * r.price * (1 - r.disc / 100);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${r.name||'—'}</td><td>${r.qty}</td><td>₹${r.price.toFixed(2)}</td><td>${r.disc}%</td><td>₹${rowTotal.toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+      });
+
+      const { subtotal, discount, tax, grand } = calcTotals(rows);
+      document.getElementById('prev-subtotal').textContent = '₹' + subtotal.toFixed(2);
+      document.getElementById('prev-discount').textContent = '-₹' + discount.toFixed(2);
+      document.getElementById('prev-tax').textContent = '+₹' + tax.toFixed(2);
+      document.getElementById('prev-grand').textContent = '₹' + grand.toFixed(2);
+    }
+
+    function clearAll() {
+      document.getElementById('productRows').innerHTML = '';
+      document.getElementById('custName').value = '';
+      document.getElementById('custPhone').value = '';
+      document.getElementById('custAddress').value = '';
+      document.getElementById('billNotes').value = '';
+      rowCount = 0;
+      setBillDefaults();
+      addRow();
+      recalc();
+    }
+
+    function setBillDefaults() {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+      const billNo = 'INV-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '-' + Math.floor(Math.random()*9000+1000);
+      document.getElementById('billDate').value = dateStr;
+      document.getElementById('billNo').value = billNo;
+    }
+
+    // ── PDF DOWNLOAD ──
+    window.downloadPDF = async function() {
+      const el = document.getElementById('billPreview');
+      showToast('📄 Generating PDF…');
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfW, pdfH);
+      const billNo = document.getElementById('billNo').value || 'bill';
+      pdf.save(billNo + '.pdf');
+      showToast('✅ PDF downloaded!');
+    };
+
+    // ── IMAGE DOWNLOAD ──
+    window.downloadImage = async function() {
+      const el = document.getElementById('billPreview');
+      showToast('🖼 Generating image…');
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const link = document.createElement('a');
+      const billNo = document.getElementById('billNo').value || 'bill';
+      link.download = billNo + '.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('✅ Image downloaded!');
+    };
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'show' + (isError ? ' error' : '');
+      setTimeout(() => t.className = '', 3000);
+    }
+
+    // ── INIT ──
+    setBillDefaults();
+    addRow();
+    recalc();
+  </script>
+</body>
+</html>
