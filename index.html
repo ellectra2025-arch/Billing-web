@@ -23,48 +23,137 @@
       font-family: 'Inter', sans-serif;
       min-height: 100vh;
       display: flex;
-      align-items: center;
-      justify-content: center;
+      align-items: stretch;
       overflow: hidden;
       background: var(--black);
     }
 
-    /* Video Background */
-    #bg-video {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      z-index: 0;
-      opacity: 0.35;
+    /* ── LEFT PANEL — VIDEO SHOWCASE ── */
+    .left-panel {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      min-width: 0;
     }
 
-    /* Overlay */
-    .overlay {
-      position: fixed;
+    .left-panel-video {
+      position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(13,13,13,0.82) 0%, rgba(229,57,53,0.18) 100%);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    .left-panel-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        rgba(13,13,13,0.55) 0%,
+        rgba(229,57,53,0.22) 60%,
+        rgba(13,13,13,0.75) 100%);
       z-index: 1;
     }
 
-    /* Login Card */
+    .left-panel-content {
+      position: relative;
+      z-index: 2;
+      color: var(--white);
+      padding: 48px;
+      text-align: left;
+      max-width: 480px;
+    }
+
+    .left-tag {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--black);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+
+    .left-headline {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 58px;
+      line-height: 1.0;
+      letter-spacing: 1px;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+    .left-headline span { color: var(--yellow); }
+
+    .left-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.72);
+      line-height: 1.7;
+      margin-bottom: 32px;
+      max-width: 340px;
+    }
+
+    .left-stats {
+      display: flex;
+      gap: 28px;
+    }
+    .stat-item strong {
+      display: block;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--yellow);
+      line-height: 1;
+    }
+    .stat-item span {
+      font-size: 11px;
+      color: rgba(255,255,255,0.55);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── RIGHT PANEL — LOGIN ── */
+    .right-panel {
+      width: 440px;
+      min-width: 440px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--black);
+      padding: 40px 36px;
+      position: relative;
+    }
+
+    /* subtle background pattern */
+    .right-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(255,214,0,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
     .login-wrap {
       position: relative;
-      z-index: 10;
+      z-index: 2;
       width: 100%;
-      max-width: 440px;
-      padding: 20px;
+      max-width: 380px;
     }
 
     .brand {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
     .brand-logo {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     .brand-icon {
       width: 48px; height: 48px;
@@ -81,9 +170,9 @@
     }
     .brand-name span { color: var(--yellow); }
     .brand-tagline {
-      color: rgba(255,255,255,0.55);
-      font-size: 13px;
-      letter-spacing: 1px;
+      color: rgba(255,255,255,0.45);
+      font-size: 11px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
     }
 
@@ -91,7 +180,7 @@
       background: rgba(255,255,255,0.97);
       border-radius: 20px;
       padding: 40px 36px;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,214,0,0.2);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,214,0,0.2);
     }
 
     .card h2 {
@@ -106,9 +195,7 @@
       margin-bottom: 28px;
     }
 
-    .form-group {
-      margin-bottom: 18px;
-    }
+    .form-group { margin-bottom: 18px; }
     label {
       display: block;
       font-size: 12px;
@@ -184,7 +271,6 @@
     }
     .footer-note strong { color: var(--text); }
 
-    /* Decorative yellow bar */
     .card::before {
       content: '';
       display: block;
@@ -203,49 +289,85 @@
       animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Responsive: stack on small screens */
+    @media (max-width: 860px) {
+      body { flex-direction: column; }
+      .left-panel { min-height: 260px; flex: none; height: 260px; }
+      .right-panel { width: 100%; min-width: 0; padding: 24px 20px; }
+      .left-headline { font-size: 38px; }
+      .left-panel-content { padding: 28px; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Video Background -->
-  <video id="bg-video" autoplay muted loop playsinline>
-    <source src="https://assets.mixkit.co/videos/preview/mixkit-warehouse-workers-on-a-conveyor-belt-1-1078-large.mp4" type="video/mp4"/>
-    <!-- Fallback retail/business video -->
-    <source src="https://assets.mixkit.co/videos/preview/mixkit-businesswoman-working-on-a-laptop-in-an-office-23-large.mp4" type="video/mp4"/>
-  </video>
-  <div class="overlay"></div>
-
-  <div class="login-wrap">
-    <div class="brand">
-      <div class="brand-logo">
-        <div class="brand-icon">🧾</div>
-        <div class="brand-name">Bill<span>Pro</span></div>
+  <!-- ── LEFT PANEL: VIDEO ── -->
+  <div class="left-panel">
+    <video class="left-panel-video" autoplay muted loop playsinline>
+      <!-- GitHub raw video URL -->
+      <source src="https://raw.githubusercontent.com/projectcentreai-ux/OM-Electronics/main/153609-805688859_medium.mp4" type="video/mp4"/>
+      <!-- Fallback -->
+      <source src="https://assets.mixkit.co/videos/preview/mixkit-warehouse-workers-on-a-conveyor-belt-1-1078-large.mp4" type="video/mp4"/>
+    </video>
+    <div class="left-panel-overlay"></div>
+    <div class="left-panel-content">
+      <div class="left-tag">✦ Trusted by businesses</div>
+      <div class="left-headline">Smart<br/>Billing<br/><span>Made Easy</span></div>
+      <div class="left-desc">
+        Generate professional GST invoices, track sales, and manage your business — all in one place.
       </div>
-      <div class="brand-tagline">Smart Billing & Sales Management</div>
+      <div class="left-stats">
+        <div class="stat-item">
+          <strong>GST</strong>
+          <span>Compliant</span>
+        </div>
+        <div class="stat-item">
+          <strong>PDF</strong>
+          <span>Export</span>
+        </div>
+        <div class="stat-item">
+          <strong>Live</strong>
+          <span>Dashboard</span>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="card">
-      <h2>Welcome back</h2>
-      <p class="sub">Sign in to your billing dashboard</p>
-
-      <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" id="email" placeholder="you@company.com" autocomplete="email"/>
+  <!-- ── RIGHT PANEL: LOGIN ── -->
+  <div class="right-panel">
+    <div class="login-wrap">
+      <div class="brand">
+        <div class="brand-logo">
+          <div class="brand-icon">🧾</div>
+          <div class="brand-name">Bill<span>Pro</span></div>
+        </div>
+        <div class="brand-tagline">Smart Billing & Sales Management</div>
       </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
-      </div>
 
-      <button class="btn-login" id="loginBtn" onclick="handleLogin()">
-        Sign In
-      </button>
+      <div class="card">
+        <h2>Welcome back</h2>
+        <p class="sub">Sign in to your billing dashboard</p>
 
-      <div class="error-msg" id="errorMsg"></div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" id="email" placeholder="you@company.com" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
 
-      <hr class="divider"/>
-      <div class="footer-note">
-        <strong>BillPro</strong> — Secure billing platform powered by Firebase
+        <button class="btn-login" id="loginBtn" onclick="handleLogin()">
+          Sign In
+        </button>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <hr class="divider"/>
+        <div class="footer-note">
+          <strong>BillPro</strong> — Secure billing platform powered by Firebase
+        </div>
       </div>
     </div>
   </div>
@@ -267,7 +389,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Auto-redirect if already logged in
     onAuthStateChanged(auth, (user) => {
       if (user) window.location.href = 'billing.html';
     });
@@ -307,7 +428,6 @@
       }
     };
 
-    // Enter key support
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') window.handleLogin();
     });
